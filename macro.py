@@ -77,6 +77,7 @@ def macro():
                 print(f"발견된 div의 개수: {len(div_elements)}")
 
                 for index, div in enumerate(div_elements, start=1):
+                    # 강의명
                     lecture_name = driver.find_element(By.XPATH, f"{base_xpath}[{index}]/div[1]/div/span")
                     print(f"강의명: {lecture_name.text}")
 
@@ -87,17 +88,24 @@ def macro():
                     total_seconds = time_obj.minute * 60 + time_obj.second
                     print(f"강의 시간: {total_seconds}s")
 
-                    # 강의 진행도가 100%인 경우 다음으로 넘어감
+                    # 강의 진도율이 100%인 경우 다음으로 넘어감
                     progress_element = driver.find_element(By.XPATH, f"{base_xpath}[{index}]/div[2]/div[2]")
                     progress_str = progress_element.text
-                    if progress_str != "100%":
-                        driver.find_element(By.CLASS_NAME, "view").click()
-                        time.sleep(total_seconds)
+                    print(f"강의 진도율: {progress_str}")
+                    if progress_str == "100%":
+                        continue
 
-                        driver.find_element(By.ID, "close_").click()
-                        time.sleep(pa.waitseconds)
+                    lecture_name.click()
+                    time.sleep(total_seconds)
 
-                        print(f"{lecture_name} 강의 수강 완료")
+                    driver.find_element(By.ID, "close_").click()
+                    time.sleep(pa.waitseconds)
+
+                    WebDriverWait(driver, 5).until(EC.alert_is_present())
+                    alert = Alert(driver)
+                    alert.accept()
+
+                    print(f"{lecture_name.text} 강의 수강 완료")
 
     except TimeoutException:
         print("Timeout occurred. Page might be loading slowly or elements not found.")
