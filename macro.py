@@ -77,6 +77,10 @@ def macro():
 
                     time_element = driver.find_element(By.XPATH, f"{base_xpath}[{index}]/div[2]/div[3]")
 
+                    # 출첵 반영 안 되는 강의인 경우 넘어감
+                    if time_element.text == "":
+                        continue
+
                     # 전체 강의 시간
                     time_str = time_element.text.split("/")[2].strip()
                     time_obj = datetime.strptime(time_str, "%M:%S")
@@ -90,7 +94,7 @@ def macro():
                     remain_seconds = total_seconds - studied_seconds
                     print(f"남은 강의 시간: {remain_seconds}초")
 
-                    # 강의 진도율이 100%인 경우 다음 강의로 넘어감
+                    # 이미 강의 진도율이 100%인 경우 다음 강의로 넘어감
                     progress_element = driver.find_element(By.XPATH, f"{base_xpath}[{index}]/div[2]/div[2]")
                     progress_str = progress_element.text
                     print(f"강의 진도율: {progress_str}")
@@ -104,9 +108,12 @@ def macro():
 
                     # 강의 종료
                     driver.find_element(By.ID, "close_").click()
-                    WebDriverWait(driver, 5).until(EC.alert_is_present())
-                    alert = Alert(driver)
-                    alert.accept()
+                    try:
+                        WebDriverWait(driver, 5).until(EC.alert_is_present())
+                        alert = Alert(driver)
+                        alert.accept()
+                    except TimeoutException:
+                        continue
 
                     print(f"{lecture_name.text} 강의 수강 완료")
                     time.sleep(1)
