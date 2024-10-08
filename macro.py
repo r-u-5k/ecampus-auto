@@ -113,7 +113,7 @@ def macro():
                         alert = Alert(driver)
                         alert.accept()
                     except TimeoutException:
-                        continue
+                        pass
 
                     print(f"{lecture_name.text} 강의 수강 완료")
                     time.sleep(1)
