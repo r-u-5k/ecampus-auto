@@ -46,12 +46,12 @@ def macro():
 
         # 강의 페이지로 이동
         WebDriverWait(driver, 30).until(  # 대기 시간 증가
-            EC.element_to_be_clickable((By.XPATH, "//em[contains(text(), '10월-2')]"))
+            EC.element_to_be_clickable((By.XPATH, "//em[contains(text(), '컴퓨터네트워크')]"))
         ).click()
         time.sleep(1)
 
         # 1주차 페이지로 이동
-        driver.find_element(By.ID, "week-1").click()
+        driver.find_element(By.XPATH, "/html/body/div[3]/div[2]/div/div[2]/div[2]/div[2]/div[2]/div/div[1]").click()
         time.sleep(1)
 
         # 강의 전체 주차 수를 가져옴
@@ -59,9 +59,9 @@ def macro():
         print("총 " + str(len(weeks)) + "주차")
 
         for week in weeks:
-            status = week.find_element(By.CLASS_NAME, "wb-status").text.strip()
+            x, y = week.find_element(By.CLASS_NAME, "wb-status").text.strip().split("/")
 
-            if status == "0/1":
+            if x != y:
                 week_id = week.get_attribute("id")
                 driver.find_element(By.ID, week_id).click()
                 time.sleep(1)
@@ -70,7 +70,7 @@ def macro():
                 div_elements = driver.find_elements(By.XPATH, f"{base_xpath}")
                 print(f"{str(week_id)[5:]}주차 강의: 총 {len(div_elements)}개")
 
-                for index, div in enumerate(div_elements, start=1):
+                for index in range(1, len(div_elements) + 1):
                     # 강의명
                     lecture_name = driver.find_element(By.XPATH, f"{base_xpath}[{index}]/div[1]/div/span")
                     print(f"강의명: {lecture_name.text}")
@@ -83,14 +83,22 @@ def macro():
 
                     # 전체 강의 시간
                     time_str = time_element.text.split("/")[2].strip()
-                    time_obj = datetime.strptime(time_str, "%M:%S")
-                    total_seconds = time_obj.minute * 60 + time_obj.second
+                    if len(time_str) == 7:
+                        time_obj = datetime.strptime(time_str, "%H:%M:%S")
+                        total_seconds = time_obj.hour * 3600 + time_obj.minute * 60 + time_obj.second
+                    else:
+                        time_obj = datetime.strptime(time_str, "%M:%S")
+                        total_seconds = time_obj.minute * 60 + time_obj.second
                     print(f"전체 강의 시간: {total_seconds}초")
 
                     # 남은 강의 시간
                     studied_time_str = time_element.text.split("/")[0].strip()
-                    studied_time_obj = datetime.strptime(studied_time_str, "%M:%S")
-                    studied_seconds = studied_time_obj.minute * 60 + studied_time_obj.second
+                    if len(studied_time_str) == 7:
+                        studied_time_obj = datetime.strptime(studied_time_str, "%H:%M:%S")
+                        studied_seconds = studied_time_obj.hour * 3600 + studied_time_obj.minute * 60 + studied_time_obj.second
+                    else:
+                        studied_time_obj = datetime.strptime(studied_time_str, "%M:%S")
+                        studied_seconds = studied_time_obj.minute * 60 + studied_time_obj.second
                     remain_seconds = total_seconds - studied_seconds
                     print(f"남은 강의 시간: {remain_seconds}초")
 
@@ -115,7 +123,7 @@ def macro():
                     except TimeoutException:
                         pass
 
-                    print(f"{lecture_name.text} 강의 수강 완료")
+                    print("강의 수강 완료")
                     time.sleep(1)
 
     except TimeoutException:

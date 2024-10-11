@@ -3,6 +3,7 @@ from web_driver_manager import WebDriverManager
 from ecampus_automation import ECampusAutomation
 import params as pa
 
+
 def main():
     driver_manager = WebDriverManager(pa.CHROME_DRIVER_PATH)
     driver = driver_manager.get_driver()
@@ -22,6 +23,7 @@ def main():
         print(f"에러 발생: {str(e)}")
     finally:
         driver.quit()
+
 
 if __name__ == "__main__":
     main()
