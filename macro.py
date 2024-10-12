@@ -32,7 +32,7 @@ def driver_setting(DownloadPath):
     return driver
 
 
-def macro():
+def macro(lecture_name):
     driver = driver_setting(pa.CHROME_DRIVER_PATH)
     try:
         driver.get("https://ecampus.konkuk.ac.kr/ilos/main/member/login_form.acl")
@@ -47,7 +47,7 @@ def macro():
 
         # 강의 페이지로 이동
         WebDriverWait(driver, 30).until(  # 대기 시간 증가
-            EC.element_to_be_clickable((By.XPATH, "//em[contains(text(), '경제성공학')]"))
+            EC.element_to_be_clickable((By.XPATH, f"//em[contains(text(), '{lecture_name}')]"))
         ).click()
         time.sleep(1)
 
@@ -69,17 +69,9 @@ def macro():
 
                 session_elements = driver.find_elements(By.XPATH, "/html/body/div[3]/div[2]/div/div[2]/div[2]/div[3]/div")
 
-                for session_index in range(len(session_elements)):
-                    session_elements = driver.find_elements(By.XPATH, "/html/body/div[3]/div[2]/div/div[2]/div[2]/div[3]/div")
-                    session = session_elements[session_index]
-
+                for session_index, session in enumerate(session_elements, start=1):
                     lecture_elements = session.find_elements(By.XPATH, "./div/ul/li[1]/ol/li[5]/div/div")
-
-                    for lecture_index in range(len(lecture_elements)):
-                        session_elements = driver.find_elements(By.XPATH, "/html/body/div[3]/div[2]/div/div[2]/div[2]/div[3]/div")
-                        session = session_elements[session_index]
-                        lecture_elements = session.find_elements(By.XPATH, "./div/ul/li[1]/ol/li[5]/div/div")  # 갱신된 강의 찾기
-                        lecture = lecture_elements[lecture_index]
+                    for lecture_index, lecture in enumerate(lecture_elements, start=1):
                         lecture_name = lecture.find_element(By.XPATH, "./div[1]/div/span")
                         print(f"강의명: {lecture_name.text}")
 
@@ -120,7 +112,7 @@ def macro():
                         # 강의 클릭
                         lecture_name.click()
                         print("열심히 강의 수강 중..")
-                        # time.sleep(remain_seconds + 30)
+                        time.sleep(remain_seconds + 30)
 
                         # 강의 종료
                         driver.find_element(By.ID, "close_").click()
@@ -139,7 +131,7 @@ def macro():
     except NoSuchElementException as e:
         print(f"해당 요소가 없음: {str(e)}")
     except StaleElementReferenceException:
-        print(f"Stale element 오류 발생: 세션 {session_index}, 강의 {lecture_index}")
+        print(f"Stale element 오류 발생")
     except Exception as e:
         print(f"오류 발생: {str(e)}")
     finally:
@@ -147,4 +139,4 @@ def macro():
 
 
 if __name__ == "__main__":
-    macro()
+    macro("온라인학습법특강 7")
