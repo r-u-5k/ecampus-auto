@@ -2,7 +2,7 @@ import time
 from datetime import datetime
 
 from selenium import webdriver
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, StaleElementReferenceException
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.alert import Alert
 from selenium.webdriver.common.by import By
@@ -69,9 +69,17 @@ def macro():
 
                 session_elements = driver.find_elements(By.XPATH, "/html/body/div[3]/div[2]/div/div[2]/div[2]/div[3]/div")
 
-                for session_index, session in enumerate(session_elements, start=1):
+                for session_index in range(len(session_elements)):
+                    session_elements = driver.find_elements(By.XPATH, "/html/body/div[3]/div[2]/div/div[2]/div[2]/div[3]/div")
+                    session = session_elements[session_index]
+
                     lecture_elements = session.find_elements(By.XPATH, "./div/ul/li[1]/ol/li[5]/div/div")
-                    for lecture_index, lecture in enumerate(lecture_elements, start=1):
+
+                    for lecture_index in range(len(lecture_elements)):
+                        session_elements = driver.find_elements(By.XPATH, "/html/body/div[3]/div[2]/div/div[2]/div[2]/div[3]/div")
+                        session = session_elements[session_index]
+                        lecture_elements = session.find_elements(By.XPATH, "./div/ul/li[1]/ol/li[5]/div/div")  # 갱신된 강의 찾기
+                        lecture = lecture_elements[lecture_index]
                         lecture_name = lecture.find_element(By.XPATH, "./div[1]/div/span")
                         print(f"강의명: {lecture_name.text}")
 
@@ -128,10 +136,12 @@ def macro():
 
     except TimeoutException:
         print("시간 초과")
-    except NoSuchElementException:
-        print("해당 요소가 없음")
+    except NoSuchElementException as e:
+        print(f"해당 요소가 없음: {str(e)}")
+    except StaleElementReferenceException:
+        print(f"Stale element 오류 발생: 세션 {session_index}, 강의 {lecture_index}")
     except Exception as e:
-        print(f"에러 발생: {str(e)}")
+        print(f"오류 발생: {str(e)}")
     finally:
         driver.quit()
 
