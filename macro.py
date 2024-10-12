@@ -1,12 +1,13 @@
 import time
 from datetime import datetime
+
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.alert import Alert
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.alert import Alert
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 import params as pa
 
@@ -46,7 +47,7 @@ def macro():
 
         # 강의 페이지로 이동
         WebDriverWait(driver, 30).until(  # 대기 시간 증가
-            EC.element_to_be_clickable((By.XPATH, "//em[contains(text(), '컴퓨터네트워크')]"))
+            EC.element_to_be_clickable((By.XPATH, "//em[contains(text(), '온라인학습법특강 7')]"))
         ).click()
         time.sleep(1)
 
@@ -66,65 +67,64 @@ def macro():
                 driver.find_element(By.ID, week_id).click()
                 time.sleep(1)
 
-                base_xpath = "/html/body/div[3]/div[2]/div/div[2]/div[2]/div[3]/div/div/ul/li[1]/ol/li[5]/div/div"
-                div_elements = driver.find_elements(By.XPATH, f"{base_xpath}")
-                print(f"{str(week_id)[5:]}주차 강의: 총 {len(div_elements)}개")
+                sessions_xpath = driver.find_elements(By.XPATH, "/html/body/div[3]/div[2]/div/div[2]/div[2]/div[3]/div")
 
-                for index in range(1, len(div_elements) + 1):
-                    # 강의명
-                    lecture_name = driver.find_element(By.XPATH, f"{base_xpath}[{index}]/div[1]/div/span")
-                    print(f"강의명: {lecture_name.text}")
+                for session in sessions_xpath:
+                    lecture_elements = session.find_elements(By.XPATH, "./div/ul/li[1]/ol/li[5]/div/div")
+                    for lecture in lecture_elements:
+                        lecture_name = lecture.find_element(By.XPATH, "./div[1]/div/span")
+                        print(f"강의명: {lecture_name.text}")
 
-                    time_element = driver.find_element(By.XPATH, f"{base_xpath}[{index}]/div[2]/div[3]")
+                        time_element = lecture.find_element(By.XPATH, "./div[2]/div[3]")
 
-                    # 출첵 반영 안 되는 강의인 경우 넘어감
-                    if time_element.text == "":
-                        continue
+                        # 출첵 반영 안 되는 강의인 경우 넘어감
+                        if time_element.text == "":
+                            continue
 
-                    # 전체 강의 시간
-                    time_str = time_element.text.split("/")[2].strip()
-                    if len(time_str) == 7:
-                        time_obj = datetime.strptime(time_str, "%H:%M:%S")
-                        total_seconds = time_obj.hour * 3600 + time_obj.minute * 60 + time_obj.second
-                    else:
-                        time_obj = datetime.strptime(time_str, "%M:%S")
-                        total_seconds = time_obj.minute * 60 + time_obj.second
-                    print(f"전체 강의 시간: {total_seconds}초")
+                        # 전체 강의 시간
+                        time_str = time_element.text.split("/")[2].strip()
+                        if len(time_str) == 7:
+                            time_obj = datetime.strptime(time_str, "%H:%M:%S")
+                            total_seconds = time_obj.hour * 3600 + time_obj.minute * 60 + time_obj.second
+                        else:
+                            time_obj = datetime.strptime(time_str, "%M:%S")
+                            total_seconds = time_obj.minute * 60 + time_obj.second
+                        print(f"전체 강의 시간: {total_seconds}초")
 
-                    # 남은 강의 시간
-                    studied_time_str = time_element.text.split("/")[0].strip()
-                    if len(studied_time_str) == 7:
-                        studied_time_obj = datetime.strptime(studied_time_str, "%H:%M:%S")
-                        studied_seconds = studied_time_obj.hour * 3600 + studied_time_obj.minute * 60 + studied_time_obj.second
-                    else:
-                        studied_time_obj = datetime.strptime(studied_time_str, "%M:%S")
-                        studied_seconds = studied_time_obj.minute * 60 + studied_time_obj.second
-                    remain_seconds = total_seconds - studied_seconds
-                    print(f"남은 강의 시간: {remain_seconds}초")
+                        # 남은 강의 시간
+                        studied_time_str = time_element.text.split("/")[0].strip()
+                        if len(studied_time_str) == 7:
+                            studied_time_obj = datetime.strptime(studied_time_str, "%H:%M:%S")
+                            studied_seconds = studied_time_obj.hour * 3600 + studied_time_obj.minute * 60 + studied_time_obj.second
+                        else:
+                            studied_time_obj = datetime.strptime(studied_time_str, "%M:%S")
+                            studied_seconds = studied_time_obj.minute * 60 + studied_time_obj.second
+                        remain_seconds = total_seconds - studied_seconds
+                        print(f"남은 강의 시간: {remain_seconds}초")
 
-                    # 이미 강의 진도율이 100%인 경우 다음 강의로 넘어감
-                    progress_element = driver.find_element(By.XPATH, f"{base_xpath}[{index}]/div[2]/div[2]")
-                    progress_str = progress_element.text
-                    print(f"강의 진도율: {progress_str}")
-                    if progress_str == "100%":
-                        continue
+                        # 이미 강의 진도율이 100%인 경우 다음 강의로 넘어감
+                        progress_element = lecture.find_element(By.XPATH, "./div[2]/div[2]")
+                        progress_str = progress_element.text
+                        print(f"강의 진도율: {progress_str}")
+                        if progress_str == "100%":
+                            continue
 
-                    # 강의 클릭
-                    lecture_name.click()
-                    print("열심히 강의 수강 중..")
-                    time.sleep(remain_seconds + 60)
+                        # 강의 클릭
+                        lecture_name.click()
+                        print("열심히 강의 수강 중..")
+                        time.sleep(remain_seconds + 30)
 
-                    # 강의 종료
-                    driver.find_element(By.ID, "close_").click()
-                    try:
-                        WebDriverWait(driver, 5).until(EC.alert_is_present())
-                        alert = Alert(driver)
-                        alert.accept()
-                    except TimeoutException:
-                        pass
+                        # 강의 종료
+                        driver.find_element(By.ID, "close_").click()
+                        try:
+                            WebDriverWait(driver, 5).until(EC.alert_is_present())
+                            alert = Alert(driver)
+                            alert.accept()
+                        except TimeoutException:
+                            pass
 
-                    print("강의 수강 완료")
-                    time.sleep(1)
+                        print("강의 수강 완료")
+                        time.sleep(1)
 
     except TimeoutException:
         print("시간 초과")
