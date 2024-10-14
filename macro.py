@@ -6,7 +6,7 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException,
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.alert import Alert
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
 import params as pa
@@ -47,7 +47,7 @@ def macro(lecture_name):
 
         # 강의 페이지로 이동
         WebDriverWait(driver, 30).until(
-            EC.element_to_be_clickable((By.XPATH, f"//em[contains(text(), '{lecture_name}')]"))
+            ec.element_to_be_clickable((By.XPATH, f"//em[contains(text(), '{lecture_name}')]"))
         ).click()
         time.sleep(1)
 
@@ -57,13 +57,13 @@ def macro(lecture_name):
 
         # 강의 전체 주차 수를 가져옴
         weeks = WebDriverWait(driver, 10).until(
-            EC.presence_of_all_elements_located((By.XPATH, "//div[contains(@class, 'ibox3 wb')]"))
+            ec.presence_of_all_elements_located((By.XPATH, "//div[contains(@class, 'ibox3 wb')]"))
         )
         print("총 " + str(len(weeks)) + "주차")
 
         for week_index in range(len(weeks)):
             weeks = WebDriverWait(driver, 10).until(
-                EC.presence_of_all_elements_located((By.XPATH, "//div[contains(@class, 'ibox3 wb')]"))
+                ec.presence_of_all_elements_located((By.XPATH, "//div[contains(@class, 'ibox3 wb')]"))
             )
             week = weeks[week_index]  # 주차에 해당하는 요소 다시 가져옴
 
@@ -125,7 +125,7 @@ def macro(lecture_name):
                         # 강의 종료
                         driver.find_element(By.ID, "close_").click()
                         try:
-                            WebDriverWait(driver, 10).until(EC.alert_is_present())
+                            WebDriverWait(driver, 10).until(ec.alert_is_present())
                             alert = Alert(driver)
                             alert.accept()
                         except TimeoutException:
