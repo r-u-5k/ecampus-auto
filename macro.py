@@ -65,7 +65,7 @@ def macro(lecture_name):
             weeks = WebDriverWait(driver, 10).until(
                 ec.presence_of_all_elements_located((By.XPATH, "//div[contains(@class, 'ibox3 wb')]"))
             )
-            week = weeks[week_index]  # 주차에 해당하는 요소 다시 가져옴
+            week = weeks[week_index]  # 주차에 해당하는 요소 다시 가져옴 (Stale Element Error 방지용)
 
             x, y = week.find_element(By.CLASS_NAME, "wb-status").text.strip().split("/")
 
@@ -139,9 +139,9 @@ def macro(lecture_name):
     except NoSuchElementException as e:
         print(f"해당 요소가 없음: {str(e)}")
     except StaleElementReferenceException:
-        print(f"Stale element 오류 발생")
+        print(f"Stale Element 에러 발생")
     except Exception as e:
-        print(f"오류 발생: {str(e)}")
+        print(f"에러 발생: {str(e)}")
     finally:
         driver.quit()
 
