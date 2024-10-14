@@ -46,7 +46,7 @@ def macro(lecture_name):
         print("로그인 성공")
 
         # 강의 페이지로 이동
-        WebDriverWait(driver, 30).until(  # 대기 시간 증가
+        WebDriverWait(driver, 30).until(
             EC.element_to_be_clickable((By.XPATH, f"//em[contains(text(), '{lecture_name}')]"))
         ).click()
         time.sleep(1)
@@ -56,14 +56,22 @@ def macro(lecture_name):
         time.sleep(1)
 
         # 강의 전체 주차 수를 가져옴
-        weeks = driver.find_elements(By.XPATH, "//div[contains(@class, 'ibox3 wb')]")
+        weeks = WebDriverWait(driver, 10).until(
+            EC.presence_of_all_elements_located((By.XPATH, "//div[contains(@class, 'ibox3 wb')]"))
+        )
         print("총 " + str(len(weeks)) + "주차")
 
-        for week in weeks:
+        for week_index in range(len(weeks)):
+            weeks = WebDriverWait(driver, 10).until(
+                EC.presence_of_all_elements_located((By.XPATH, "//div[contains(@class, 'ibox3 wb')]"))
+            )
+            week = weeks[week_index]  # 주차에 해당하는 요소 다시 가져옴
+
             x, y = week.find_element(By.CLASS_NAME, "wb-status").text.strip().split("/")
 
             if x != y:
                 week_id = week.get_attribute("id")
+                print(f"수강할 강의: {week_id[5:]}주차")
                 driver.find_element(By.ID, week_id).click()
                 time.sleep(1)
 
@@ -72,9 +80,6 @@ def macro(lecture_name):
                 for session in session_elements:
                     lecture_elements = session.find_elements(By.XPATH, "./div/ul/li[1]/ol/li[5]/div/div")
                     for lecture in lecture_elements:
-                        # 06.사용자정의함수와 모듈 활용하기
-                        # 88%
-                        # 29:58 / 0:00 / 33:51
                         lecture_name = lecture.find_element(By.XPATH, "./div[1]/div/span")
                         print(f"강의명: {lecture_name.text}")
 
@@ -115,7 +120,7 @@ def macro(lecture_name):
                         # 강의 클릭
                         lecture_name.click()
                         print("열심히 강의 수강 중..")
-                        # time.sleep(remain_seconds + 30)
+                        time.sleep(remain_seconds + 30)
 
                         # 강의 종료
                         driver.find_element(By.ID, "close_").click()
@@ -127,7 +132,7 @@ def macro(lecture_name):
                             pass
 
                         print("강의 수강 완료")
-                        driver.refresh()
+                        time.sleep(2)
 
     except TimeoutException:
         print("시간 초과")
