@@ -69,9 +69,12 @@ def macro(lecture_name):
 
                 session_elements = driver.find_elements(By.XPATH, "/html/body/div[3]/div[2]/div/div[2]/div[2]/div[3]/div")
 
-                for session_index, session in enumerate(session_elements, start=1):
+                for session in session_elements:
                     lecture_elements = session.find_elements(By.XPATH, "./div/ul/li[1]/ol/li[5]/div/div")
-                    for lecture_index, lecture in enumerate(lecture_elements, start=1):
+                    for lecture in lecture_elements:
+                        # 06.사용자정의함수와 모듈 활용하기
+                        # 88%
+                        # 29:58 / 0:00 / 33:51
                         lecture_name = lecture.find_element(By.XPATH, "./div[1]/div/span")
                         print(f"강의명: {lecture_name.text}")
 
@@ -112,7 +115,7 @@ def macro(lecture_name):
                         # 강의 클릭
                         lecture_name.click()
                         print("열심히 강의 수강 중..")
-                        time.sleep(remain_seconds + 30)
+                        # time.sleep(remain_seconds + 30)
 
                         # 강의 종료
                         driver.find_element(By.ID, "close_").click()
@@ -124,7 +127,7 @@ def macro(lecture_name):
                             pass
 
                         print("강의 수강 완료")
-                        time.sleep(1)
+                        driver.refresh()
 
     except TimeoutException:
         print("시간 초과")
