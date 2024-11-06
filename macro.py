@@ -12,26 +12,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 import params as pa
 
 
-def driver_setting(DownloadPath):
-    options = webdriver.ChromeOptions()
-    options.add_experimental_option("prefs", {"download.default.directory": DownloadPath,
-                                              "download.prompt_for_download": False,
-                                              "download.directory_upgrade": True,
-                                              "safebrowsing.for_trusted_sources_enabled": False,
-                                              "safebrowsing.enabled": False})
-
-    # options.add_argument("--headless")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-sha-usage")
-
-    service = Service()
-
-    driver = webdriver.Chrome(service=service, options=options)
-    driver.implicitly_wait(1)
-
-    return driver
-
-
 def macro(lecture_name):
     driver = driver_setting(pa.CHROME_DRIVER_PATH)
     try:
@@ -43,7 +23,6 @@ def macro(lecture_name):
         driver.find_element(By.XPATH, "//input[@id='usr_pwd']").send_keys(pa.password)
         driver.find_element(By.XPATH, "//*[@id='login_btn']").click()
         time.sleep(1)
-        print("로그인 성공")
 
         # 강의 페이지로 이동
         WebDriverWait(driver, 30).until(
@@ -55,17 +34,15 @@ def macro(lecture_name):
         driver.find_element(By.XPATH, "/html/body/div[3]/div[2]/div/div[2]/div[2]/div[2]/div[2]/div/div[1]").click()
         time.sleep(1)
 
-        # 강의 전체 주차 수를 가져옴
         weeks = WebDriverWait(driver, 10).until(
             ec.presence_of_all_elements_located((By.XPATH, "//div[contains(@class, 'ibox3 wb')]"))
         )
-        print("총 " + str(len(weeks)) + "주차")
 
         for week_index in range(len(weeks)):
             weeks = WebDriverWait(driver, 10).until(
                 ec.presence_of_all_elements_located((By.XPATH, "//div[contains(@class, 'ibox3 wb')]"))
             )
-            week = weeks[week_index]  # 주차에 해당하는 요소 다시 가져옴 (Stale Element Error 방지용)
+            week = weeks[week_index]
 
             x, y = week.find_element(By.CLASS_NAME, "wb-status").text.strip().split("/")
 
@@ -75,11 +52,16 @@ def macro(lecture_name):
                 driver.find_element(By.ID, week_id).click()
                 time.sleep(1)
 
-                session_elements = driver.find_elements(By.XPATH, "/html/body/div[3]/div[2]/div/div[2]/div[2]/div[3]/div")
-
-                for session in session_elements:
-                    lecture_elements = session.find_elements(By.XPATH, "./div/ul/li[1]/ol/li[5]/div/div")
-                    for lecture in lecture_elements:
+                session_elements = WebDriverWait(driver, 10).until(
+                    ec.presence_of_all_elements_located(
+                        (By.XPATH, "/html/body/div[3]/div[2]/div/div[2]/div[2]/div[3]/div"))
+                )
+                print(f"총 {len(session_elements)}차시")
+                for session_index in range(1, len(session_elements) + 1):
+                    base_xpath = f"/html/body/div[3]/div[2]/div/div[2]/div[2]/div[3]/div[{session_index}]/div/ul/li[1]/ol/li[5]/div"
+                    lecture_elements = driver.find_elements(By.XPATH, f"{base_xpath}/div")
+                    for lecture_index in range(1, len(lecture_elements) + 1):
+                        lecture = driver.find_element(By.XPATH, f"{base_xpath}/div[{lecture_index}]")
                         lecture_name = lecture.find_element(By.XPATH, "./div[1]/div/span")
                         print(f"강의명: {lecture_name.text}")
 
@@ -90,30 +72,17 @@ def macro(lecture_name):
                             continue
 
                         # 전체 강의 시간
-                        time_str = time_element.text.split("/")[2].strip()
-                        if len(time_str) == 7:
-                            time_obj = datetime.strptime(time_str, "%H:%M:%S")
-                            total_seconds = time_obj.hour * 3600 + time_obj.minute * 60 + time_obj.second
-                        else:
-                            time_obj = datetime.strptime(time_str, "%M:%S")
-                            total_seconds = time_obj.minute * 60 + time_obj.second
+                        total_seconds = cal_total_time(time_element)
                         print(f"전체 강의 시간: {total_seconds}초")
 
                         # 남은 강의 시간
-                        studied_time_str = time_element.text.split("/")[0].strip()
-                        if len(studied_time_str) == 7:
-                            studied_time_obj = datetime.strptime(studied_time_str, "%H:%M:%S")
-                            studied_seconds = studied_time_obj.hour * 3600 + studied_time_obj.minute * 60 + studied_time_obj.second
-                        else:
-                            studied_time_obj = datetime.strptime(studied_time_str, "%M:%S")
-                            studied_seconds = studied_time_obj.minute * 60 + studied_time_obj.second
-                        remain_seconds = total_seconds - studied_seconds
+                        remain_seconds = cal_remain_time(time_element, total_seconds)
                         print(f"남은 강의 시간: {remain_seconds}초")
 
-                        # 이미 강의 진도율이 100%인 경우 다음 강의로 넘어감
                         progress_element = lecture.find_element(By.XPATH, "./div[2]/div[2]")
                         progress_str = progress_element.text
                         print(f"강의 진도율: {progress_str}")
+                        # 이미 강의 진도율이 100%인 경우 다음 강의로 넘어감
                         if progress_str == "100%":
                             continue
 
@@ -121,6 +90,7 @@ def macro(lecture_name):
                         lecture_name.click()
                         print("열심히 강의 수강 중..")
                         time.sleep(remain_seconds + 30)
+                        # time.sleep(2)
 
                         # 강의 종료
                         driver.find_element(By.ID, "close_").click()
@@ -146,5 +116,48 @@ def macro(lecture_name):
         driver.quit()
 
 
+def driver_setting(download_path):
+    options = webdriver.ChromeOptions()
+    options.add_experimental_option("prefs", {"download.default.directory": download_path,
+                                              "download.prompt_for_download": False,
+                                              "download.directory_upgrade": True,
+                                              "safebrowsing.for_trusted_sources_enabled": False,
+                                              "safebrowsing.enabled": False})
+
+    # options.add_argument("--headless")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-sha-usage")
+
+    service = Service()
+
+    driver = webdriver.Chrome(service=service, options=options)
+    driver.implicitly_wait(1)
+
+    return driver
+
+
+def cal_remain_time(time_element, total_seconds):
+    studied_time_str = time_element.text.split("/")[0].strip()
+    if len(studied_time_str) == 7:
+        studied_time_obj = datetime.strptime(studied_time_str, "%H:%M:%S")
+        studied_seconds = studied_time_obj.hour * 3600 + studied_time_obj.minute * 60 + studied_time_obj.second
+    else:
+        studied_time_obj = datetime.strptime(studied_time_str, "%M:%S")
+        studied_seconds = studied_time_obj.minute * 60 + studied_time_obj.second
+    remain_seconds = total_seconds - studied_seconds
+    return remain_seconds
+
+
+def cal_total_time(time_element):
+    time_str = time_element.text.split("/")[2].strip()
+    if len(time_str) == 7:
+        time_obj = datetime.strptime(time_str, "%H:%M:%S")
+        total_seconds = time_obj.hour * 3600 + time_obj.minute * 60 + time_obj.second
+    else:
+        time_obj = datetime.strptime(time_str, "%M:%S")
+        total_seconds = time_obj.minute * 60 + time_obj.second
+    return total_seconds
+
+
 if __name__ == "__main__":
-    macro("온라인학습법특강 7")
+    macro("컴퓨터네트워크")
