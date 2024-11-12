@@ -34,20 +34,20 @@ def macro(lecture_name):
         driver.find_element(By.XPATH, "/html/body/div[3]/div[2]/div/div[2]/div[2]/div[2]/div[2]/div/div[1]").click()
         time.sleep(1)
 
-        weeks = WebDriverWait(driver, 10).until(
+        week_elements = WebDriverWait(driver, 10).until(
             ec.presence_of_all_elements_located((By.XPATH, "//div[contains(@class, 'ibox3 wb')]"))
         )
 
-        for week_index in range(len(weeks)):
-            weeks = WebDriverWait(driver, 10).until(
+        for week_index in range(len(week_elements)):
+            week_elements = WebDriverWait(driver, 10).until(
                 ec.presence_of_all_elements_located((By.XPATH, "//div[contains(@class, 'ibox3 wb')]"))
             )
-            week = weeks[week_index]
+            week_index = week_elements[week_index]
 
-            x, y = week.find_element(By.CLASS_NAME, "wb-status").text.strip().split("/")
+            x, y = week_index.find_element(By.CLASS_NAME, "wb-status").text.strip().split("/")
 
             if x != y:
-                week_id = week.get_attribute("id")
+                week_id = week_index.get_attribute("id")
                 print(f"수강할 강의: {week_id[5:]}주차")
                 driver.find_element(By.ID, week_id).click()
                 time.sleep(1)
@@ -94,14 +94,24 @@ def macro(lecture_name):
 
                         # 강의 종료
                         driver.find_element(By.ID, "close_").click()
-                        try:
-                            WebDriverWait(driver, 10).until(ec.alert_is_present())
-                            alert = Alert(driver)
-                            alert.accept()
-                        except TimeoutException:
-                            pass
 
-                        print("강의 수강 완료")
+                        # try:
+                        #     WebDriverWait(driver, 5).until(ec.alert_is_present())
+                        #     alert = Alert(driver)
+                        #     alert.accept()
+                        # except TimeoutException:
+                        #     pass
+
+                        while True:
+                            try:
+                                WebDriverWait(driver, 5).until(ec.alert_is_present())
+                                alert = Alert(driver)
+                                alert.dismiss()
+                                time.sleep(30)
+                            except TimeoutException:
+                                break
+
+                        print(f"{week_id[5:]}주차 {session_index}차시 {lecture_index}강 수강 완료")
                         time.sleep(2)
 
     except TimeoutException:
@@ -160,4 +170,4 @@ def cal_total_time(time_element):
 
 
 if __name__ == "__main__":
-    macro("컴퓨터네트워크")
+    macro("경제성공학")
