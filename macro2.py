@@ -14,6 +14,8 @@ import params as pa
 
 def macro(lecture_name):
     driver = driver_setting(pa.CHROME_DRIVER_PATH)
+    driver.execute_cdp_cmd("Network.enable", {})
+    driver.execute_cdp_cmd("Network.setBlockedURLs", {"urls": ["https://accessone.hellolms.com/accessone"]})
     try:
         driver.get("https://ecampus.konkuk.ac.kr/ilos/main/member/login_form.acl")
         time.sleep(1)
@@ -88,8 +90,10 @@ def macro(lecture_name):
 
                         # 강의 클릭
                         lecture_name.click()
+                        lecture_name.click()
+                        lecture_name.click()
                         print("열심히 강의 수강 중..")
-                        time.sleep(remain_seconds + 30)
+                        time.sleep(remain_seconds + 10)
                         # time.sleep(2)
 
                         # 강의 종료
@@ -142,6 +146,7 @@ def driver_setting(download_path):
     service = Service()
 
     driver = webdriver.Chrome(service=service, options=options)
+    driver.execute_cdp_cmd("Network.enable", {})
     driver.implicitly_wait(1)
 
     return driver
