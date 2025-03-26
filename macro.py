@@ -89,7 +89,7 @@ def macro(lecture_name):
                         # 강의 클릭
                         lecture_name.click()
                         print("열심히 강의 수강 중..")
-                        time.sleep(remain_seconds + 30)
+                        time.sleep(remain_seconds + 20)
                         # time.sleep(2)
 
                         # 강의 종료
@@ -171,4 +171,4 @@ def cal_total_time(time_element):
 
 
 if __name__ == "__main__":
-    macro("전기전자심화설계")
+    macro(input())
