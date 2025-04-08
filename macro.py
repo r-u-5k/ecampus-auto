@@ -60,11 +60,17 @@ def macro(lecture_name):
                 for session_index in range(1, len(session_elements) + 1):
                     base_xpath = f"/html/body/div[3]/div[2]/div/div[2]/div[2]/div[3]/div[{session_index}]/div/ul/li[1]/ol/li[5]/div"
                     lecture_elements = driver.find_elements(By.XPATH, f"{base_xpath}/div")
+
+                    not_period_div = driver.find_elements(By.XPATH, f"/html/body/div[3]/div[2]/div/div[2]/div[2]/div[3]/div[{session_index}]/div[1]/div")
+                    if not_period_div:
+                        if not_period_div[0].text == "학습 기간이 아닙니다.":
+                            print("학습 기간이 아님")
+                            continue
+
                     for lecture_index in range(1, len(lecture_elements) + 1):
                         lecture = driver.find_element(By.XPATH, f"{base_xpath}/div[{lecture_index}]")
                         lecture_name = lecture.find_element(By.XPATH, "./div[1]/div/span")
                         print(f"강의명: {lecture_name.text}")
-
                         time_element = lecture.find_element(By.XPATH, "./div[2]/div[3]")
 
                         # 출첵 반영 안 되는 강의인 경우 넘어감
@@ -90,17 +96,6 @@ def macro(lecture_name):
                         lecture_name.click()
                         print("열심히 강의 수강 중..")
                         time.sleep(remain_seconds + 20)
-                        # time.sleep(2)
-
-                        # 강의 종료
-                        # driver.find_element(By.ID, "close_").click()
-
-                        # try:
-                        #     WebDriverWait(driver, 5).until(ec.alert_is_present())
-                        #     alert = Alert(driver)
-                        #     alert.accept()
-                        # except TimeoutException:
-                        #     pass
 
                         while True:
                             driver.find_element(By.ID, "close_").click()
@@ -171,4 +166,5 @@ def cal_total_time(time_element):
 
 
 if __name__ == "__main__":
-    macro(input())
+    lecture_name = input("강의명을 입력하쇼: ")
+    macro(lecture_name)
