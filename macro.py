@@ -65,7 +65,7 @@ def macro(lecture_name):
                     if not_period_div:
                         if not_period_div[0].text == "학습 기간이 아닙니다.":
                             print("학습 기간이 아님")
-                            continue
+                            break
 
                     for lecture_index in range(1, len(lecture_elements) + 1):
                         lecture = driver.find_element(By.XPATH, f"{base_xpath}/div[{lecture_index}]")
