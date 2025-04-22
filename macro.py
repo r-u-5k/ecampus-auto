@@ -54,7 +54,7 @@ def macro(lecture_name, userid, password):
 
             if x != y:
                 week_id = week_index.get_attribute("id")
-                # print(f"수강할 강의: {week_id[5:]}주차")
+                print(f"수강할 강의: {week_id[5:]}주차")
                 driver.find_element(By.ID, week_id).click()
                 time.sleep(1)
 
@@ -62,13 +62,12 @@ def macro(lecture_name, userid, password):
                     ec.presence_of_all_elements_located(
                         (By.XPATH, "/html/body/div[3]/div[2]/div/div[2]/div[2]/div[3]/div"))
                 )
-                # print(f"총 {len(session_elements)}차시")
+                print(f"총 {len(session_elements)}차시")
                 for session_index in range(1, len(session_elements) + 1):
                     base_xpath = f"/html/body/div[3]/div[2]/div/div[2]/div[2]/div[3]/div[{session_index}]/div/ul/li[1]/ol/li[5]/div"
                     lecture_elements = driver.find_elements(By.XPATH, f"{base_xpath}/div")
 
-                    not_period_div = driver.find_elements(By.XPATH,
-                                                          f"/html/body/div[3]/div[2]/div/div[2]/div[2]/div[3]/div[{session_index}]/div[1]/div")
+                    not_period_div = driver.find_elements(By.XPATH, f"/html/body/div[3]/div[2]/div/div[2]/div[2]/div[3]/div[{session_index}]/div[1]/div")
                     if not_period_div:
                         if not_period_div[0].text == "학습 기간이 아닙니다.":
                             print("학습 기간이 아님")
@@ -114,7 +113,7 @@ def macro(lecture_name, userid, password):
                         # 강의 클릭
                         lecture_name.click()
                         print("열심히 강의 수강 중..")
-                        time.sleep(remain_seconds + 20)
+                        time.sleep(remain_seconds + 30)
 
                         while True:
                             driver.find_element(By.ID, "close_").click()
@@ -122,7 +121,7 @@ def macro(lecture_name, userid, password):
                                 WebDriverWait(driver, 5).until(ec.alert_is_present())
                                 alert = Alert(driver)
                                 alert.dismiss()
-                                time.sleep(30)
+                                time.sleep(20)
                             except TimeoutException:
                                 break
 
