@@ -184,9 +184,9 @@ def cal_total_time(time_element):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="폭력예방교육 자동 수강 매크로")
+    parser = argparse.ArgumentParser(description="이캠퍼스 자동 수강 매크로")
+    parser.add_argument("--lec", required=True, help="강의명")
     parser.add_argument("--id", required=True, help="이캠퍼스 아이디")
     parser.add_argument("--pw", required=True, help="이캠퍼스 비밀번호")
     args = parser.parse_args()
-    lecture_name = "폭력예방교육"
-    macro(lecture_name, args.id, args.pw)
+    macro(args.lec, args.id, args.pw)
